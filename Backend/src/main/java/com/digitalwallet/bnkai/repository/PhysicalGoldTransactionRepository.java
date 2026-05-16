@@ -3,7 +3,8 @@ package com.digitalwallet.bnkai.repository;
 
 import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
 import com.digitalwallet.bnkai.projection.PhysicalGoldSummaryProjection;
-import org.springframework.data.domain.Page;import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -18,6 +19,13 @@ public interface PhysicalGoldTransactionRepository
     Page<PhysicalGoldTransaction>
     findByUserUserId(
             Integer userId,
+            Pageable pageable
+    );
+
+    Page<PhysicalGoldTransaction>
+    findByUserUserIdAndBranchBranchId(
+            Integer userId,
+            Integer branchId,
             Pageable pageable
     );
 
