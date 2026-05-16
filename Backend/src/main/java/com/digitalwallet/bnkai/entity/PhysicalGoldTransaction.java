@@ -1,4 +1,4 @@
-package com.personal.project.entity;
+package com.digitalwallet.bnkai.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

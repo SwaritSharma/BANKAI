@@ -1,4 +1,4 @@
-package com.personal.project.projection;
+package com.digitalwallet.bnkai.projection;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
