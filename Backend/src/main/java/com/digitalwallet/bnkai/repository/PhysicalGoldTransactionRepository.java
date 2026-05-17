@@ -1,9 +1,9 @@
-package com.personal.project.repository;
+package com.digitalwallet.bnkai.repository;
 
-import com.digitalwallet.bnkai.model.PhysicalGoldTransaction;
+
+import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
 import com.digitalwallet.bnkai.projection.PhysicalGoldSummaryProjection;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
