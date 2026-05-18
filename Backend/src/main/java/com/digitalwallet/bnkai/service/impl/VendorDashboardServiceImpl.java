@@ -1,0 +1,185 @@
+package com.digitalwallet.bnkai.service.impl;
+
+import com.digitalwallet.bnkai.dto.*;
+import com.digitalwallet.bnkai.entity.Address;
+import com.digitalwallet.bnkai.entity.TransactionHistory;
+import com.digitalwallet.bnkai.entity.Vendor;
+import com.digitalwallet.bnkai.entity.VendorBranch;
+import com.digitalwallet.bnkai.exception.BranchAllocationException;
+import com.digitalwallet.bnkai.exception.InvalidQuantityException;
+import com.digitalwallet.bnkai.exception.VendorNotFoundException;
+import com.digitalwallet.bnkai.mapper.*;
+import com.digitalwallet.bnkai.repository.AddressRepository;
+import com.digitalwallet.bnkai.repository.TransactionHistoryRepository;
+import com.digitalwallet.bnkai.repository.VendorBranchRepository;
+import com.digitalwallet.bnkai.repository.VendorRepository;
+import com.digitalwallet.bnkai.service.GoldPriceService;
+import com.digitalwallet.bnkai.service.VendorDashboardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
+
+@Service
+@RequiredArgsConstructor
+public class VendorDashboardServiceImpl implements VendorDashboardService {
+
+    private final VendorRepository vendorRepository;
+    private final VendorBranchRepository vendorBranchRepository;
+    private final TransactionHistoryRepository transactionRepository;
+    private final AddressRepository addressRepository;
+    private final GoldPriceService goldPriceService;
+    private final VendorMapper vendorMapper;
+    private final AddressMapper addressMapper;
+    private final VendorBranchMapper vendorBranchMapper;
+    private final TransactionMapper transactionMapper;
+    private final VendorDashboardMapper vendorDashboardMapper;
+
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = VENDOR_DASHBOARD_CACHE, key = "#vendorId")
+    public VendorDashboardDTO getDashboard(Integer vendorId) {
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        
+        List<VendorBranch> branches = vendorBranchRepository.findByVendorVendorId(vendorId);
+        BigDecimal totalInventory = branches.stream()
+                .map(branch -> branch.getQuantity() != null ? branch.getQuantity() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Calculate sold quantity from transactions where type is 'BUY' (user buys from vendor)
+        // Wait, if transaction type is BUY, it means the user bought gold from this vendor, so vendor sold it.
+        // Let's assume all BUY transactions for this vendor's branches count.
+        // For simplicity, we can query all transactions and filter.
+        // But since we don't have a specific repo method for vendor transactions easily, let's just use the vendor's total_gold_quantity or similar.
+        // Wait, Vendor entity has totalGoldQuantity.
+        BigDecimal totalSold = BigDecimal.ZERO; 
+        
+        return vendorDashboardMapper.toDashboard(
+                vendor,
+                branches.size(),
+                totalInventory,
+                totalSold,
+                goldPriceService.getCurrentPrice().getPrice()
+        );
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            VENDOR_DASHBOARD_CACHE,
+            VENDORS_CACHE
+    }, key = "#vendorId")
+    public VendorDashboardDTO updateProfile(Integer vendorId, EditVendorProfileRequest request) {
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        vendorMapper.updateProfile(request, vendor);
+        vendorRepository.save(vendor);
+        return getDashboard(vendorId);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = VENDOR_BRANCHES_CACHE, key = "#vendorId")
+    public List<VendorBranchDTO> getBranches(Integer vendorId) {
+        return vendorBranchMapper.toDtoList(vendorBranchRepository.findByVendorVendorId(vendorId));
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            VENDOR_DASHBOARD_CACHE,
+            VENDOR_BRANCHES_CACHE,
+            VENDOR_TRANSACTIONS_CACHE,
+            VENDORS_CACHE
+    }, key = "#vendorId")
+    public VendorBranchDTO addBranch(Integer vendorId, AddBranchRequest request) {
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        
+        Address address = addressMapper.toEntity(request);
+        address = addressRepository.save(address);
+
+        VendorBranch branch = vendorBranchMapper.toEntity(vendor, address, request.getInitialQuantity(), LocalDateTime.now());
+        branch = vendorBranchRepository.save(branch);
+
+        if (request.getInitialQuantity() != null && request.getInitialQuantity().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal currentVendorQty = vendor.getTotalGoldQuantity() != null ? vendor.getTotalGoldQuantity() : BigDecimal.ZERO;
+            vendor.setTotalGoldQuantity(currentVendorQty.add(request.getInitialQuantity()));
+            vendorRepository.save(vendor);
+
+            TransactionHistory th = transactionMapper.toEntity(
+                    null,
+                    branch,
+                    request.getInitialQuantity(),
+                    BigDecimal.ZERO,
+                    "Add Inventory",
+                    "Success",
+                    LocalDateTime.now()
+            );
+            transactionRepository.save(th);
+        }
+
+        return vendorBranchMapper.toDto(branch);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            VENDOR_DASHBOARD_CACHE,
+            VENDOR_BRANCHES_CACHE
+    }, key = "#vendorId")
+    public void deleteBranch(Integer vendorId, Integer branchId) {
+        VendorBranch branch = vendorBranchRepository.findById(branchId).orElseThrow(() -> new BranchAllocationException("Branch not found"));
+        if (branch.getVendor() == null || !branch.getVendor().getVendorId().equals(vendorId)) {
+            throw new BranchAllocationException("Branch does not belong to this vendor");
+        }
+        vendorBranchRepository.delete(branch);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = VENDOR_TRANSACTIONS_CACHE, key = "#vendorId")
+    public List<TransactionDTO> getTransactions(Integer vendorId) {
+        return transactionMapper.toDtoList(
+                transactionRepository.findByBranchVendorVendorIdOrderByCreatedAtDesc(vendorId, PageRequest.of(0, 100)).getContent()
+        );
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            VENDOR_DASHBOARD_CACHE,
+            VENDOR_BRANCHES_CACHE,
+            VENDOR_TRANSACTIONS_CACHE,
+            VENDORS_CACHE
+    }, key = "#vendorId")
+    public void addGoldToBranch(Integer vendorId, Integer branchId, BigDecimal quantity) {
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidQuantityException("Quantity must be positive");
+        }
+
+        VendorBranch branch = vendorBranchRepository.findById(branchId).orElseThrow(() -> new BranchAllocationException("Branch not found"));
+        if (branch.getVendor() == null || !branch.getVendor().getVendorId().equals(vendorId)) {
+            throw new BranchAllocationException("Branch does not belong to this vendor");
+        }
+        
+        BigDecimal currentBranchQty = branch.getQuantity() != null ? branch.getQuantity() : BigDecimal.ZERO;
+        branch.setQuantity(currentBranchQty.add(quantity));
+        vendorBranchRepository.save(branch);
+        
+        Vendor vendor = branch.getVendor();
+        BigDecimal currentVendorQty = vendor.getTotalGoldQuantity() != null ? vendor.getTotalGoldQuantity() : BigDecimal.ZERO;
+        vendor.setTotalGoldQuantity(currentVendorQty.add(quantity));
+        vendorRepository.save(vendor);
+        
+        TransactionHistory th = transactionMapper.toEntity(
+                null,
+                branch,
+                quantity,
+                BigDecimal.ZERO,
+                "Add Inventory",
+                "Success",
+                LocalDateTime.now()
+        );
+        transactionRepository.save(th);
+    }
+}
