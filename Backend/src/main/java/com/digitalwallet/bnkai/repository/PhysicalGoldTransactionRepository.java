@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.repository;
 
-
 import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
 import com.digitalwallet.bnkai.projection.PhysicalGoldSummaryProjection;
 import org.springframework.data.domain.Page;

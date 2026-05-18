@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.repository;
 
-
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.projection.VendorDashboardProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
