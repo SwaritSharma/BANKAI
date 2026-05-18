@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.repository;
 
-
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.User;
 import org.junit.jupiter.api.DisplayName;
