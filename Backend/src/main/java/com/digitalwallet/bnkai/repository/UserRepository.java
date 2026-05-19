@@ -1,5 +1,6 @@
 package com.digitalwallet.bnkai.repository;
 
+
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.projection.UserDashboardProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,7 +23,4 @@ public interface UserRepository
     Optional<User> findByEmail(
             String email
     );
-
-
 }
-

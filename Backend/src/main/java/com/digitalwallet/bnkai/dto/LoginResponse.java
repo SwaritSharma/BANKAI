@@ -29,7 +29,7 @@ public class LoginResponse {
         this.role = role;
         if ("VENDOR".equals(role)) {
             this.vendorId = id;
-            this.userId = id;
+            this.userId = null;
         } else {
             this.userId = id;
             this.vendorId = null;
