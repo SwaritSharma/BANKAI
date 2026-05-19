@@ -1,18 +1,27 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.digitalwallet.bnkai.dto.*;
+import com.digitalwallet.bnkai.dto.VendorDTO;
 import com.digitalwallet.bnkai.mapper.VendorMapper;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.service.GoldPriceService;
+import lombok.RequiredArgsConstructor;
+import com.digitalwallet.bnkai.dto.AddBranchRequest;
+import com.digitalwallet.bnkai.dto.VendorBranchDTO;
+import com.digitalwallet.bnkai.dto.VendorDashboardDTO;
+import com.digitalwallet.bnkai.dto.EditVendorProfileRequest;
+import com.digitalwallet.bnkai.dto.TransactionDTO;
+import com.digitalwallet.bnkai.dto.AddGoldRequest;
 import com.digitalwallet.bnkai.service.VendorDashboardService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.digitalwallet.bnkai.security.jwt.JwtService;
+import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
 import java.util.List;
+
+import org.springframework.cache.annotation.Cacheable;
 
 import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDORS_CACHE;
 
@@ -39,6 +48,8 @@ public class VendorController {
     }
 
     private final VendorDashboardService vendorDashboardService;
+    private final JwtService jwtService;
+    private final VendorUserDetailsService vendorUserDetailsService;
 
     @GetMapping("/{id}/dashboard")
     public ResponseEntity<VendorDashboardDTO> getDashboard(@PathVariable("id") Integer id) {
@@ -47,7 +58,11 @@ public class VendorController {
 
     @PutMapping("/{id}/profile")
     public ResponseEntity<VendorDashboardDTO> updateProfile(@PathVariable("id") Integer id, @Valid @RequestBody EditVendorProfileRequest request) {
-        return ResponseEntity.ok(vendorDashboardService.updateProfile(id, request));
+        VendorDashboardDTO updated = vendorDashboardService.updateProfile(id, request);
+        String token = jwtService.generateToken(vendorUserDetailsService.loadUserByUsername(updated.getContactEmail()));
+        return ResponseEntity.ok()
+                .header("X-New-Token", token)
+                .body(updated);
     }
 
     @GetMapping("/{id}/branches")

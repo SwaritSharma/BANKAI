@@ -1,12 +1,17 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.digitalwallet.bnkai.dto.*;
+import com.digitalwallet.bnkai.dto.DashboardDTO;
+import com.digitalwallet.bnkai.dto.HoldingDTO;
+import com.digitalwallet.bnkai.dto.TransactionDTO;
+import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
+import com.digitalwallet.bnkai.dto.EditProfileRequest;
 import com.digitalwallet.bnkai.service.DashboardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.digitalwallet.bnkai.security.jwt.JwtService;
+import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import java.util.List;
 
 @RestController
@@ -15,6 +20,8 @@ import java.util.List;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final JwtService jwtService;
+    private final CustomUserDetailsService userDetailsService;
 
     @GetMapping("/{id}/dashboard")
     public DashboardDTO getDashboard(@PathVariable("id") Integer id) {
@@ -24,7 +31,10 @@ public class DashboardController {
     @PutMapping("/{id}/profile")
     public ResponseEntity<Void> updateProfile(@PathVariable("id") Integer id, @Valid @RequestBody EditProfileRequest request) {
         dashboardService.updateProfile(id, request);
-        return ResponseEntity.ok().build();
+        String token = jwtService.generateToken(userDetailsService.loadUserByUsername(request.getEmail()));
+        return ResponseEntity.ok()
+                .header("X-New-Token", token)
+                .build();
     }
 
     @GetMapping("/{id}/holdings")
