@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.math.BigDecimal;
 
 @SpringBootTest
-class ProjectApplicationTests {
+class BnkaiApplicationTests {
 
     @Autowired private VendorDashboardService vendorDashboardService;
     @Autowired private VendorRepository vendorRepo;
