@@ -1,6 +1,7 @@
-package com.personal.project.repository;
+package com.digitalwallet.bnkai.repository;
 
-import com.personal.project.entity.Vendor;
+
+import com.digitalwallet.bnkai.entity.Vendor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
