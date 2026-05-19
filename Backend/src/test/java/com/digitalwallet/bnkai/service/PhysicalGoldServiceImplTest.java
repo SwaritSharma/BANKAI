@@ -773,4 +773,3 @@ class PhysicalGoldServiceImplTest {
         ));
     }
 }
-

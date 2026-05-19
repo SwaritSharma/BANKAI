@@ -1,13 +1,11 @@
 package com.digitalwallet.bnkai;
 
-import com.digitalwallet.bnkai.entity.Vendor;
-import com.digitalwallet.bnkai.entity.VendorBranch;
-import com.digitalwallet.bnkai.repository.VendorBranchRepository;
-import com.digitalwallet.bnkai.repository.VendorRepository;
-import com.digitalwallet.bnkai.service.VendorDashboardService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.digitalwallet.bnkai.service.VendorDashboardService;
+import com.digitalwallet.bnkai.repository.*;
+import com.digitalwallet.bnkai.entity.*;
 
 import java.math.BigDecimal;
 

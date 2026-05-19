@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.repository;
 
-
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.entity.VendorBranch;

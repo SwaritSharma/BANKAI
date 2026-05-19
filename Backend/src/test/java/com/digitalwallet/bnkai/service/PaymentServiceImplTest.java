@@ -1,11 +1,11 @@
 package com.digitalwallet.bnkai.service;
 
+import com.digitalwallet.bnkai.service.impl.PaymentServiceImpl;
+import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.entity.Payment;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.mapper.PaymentMapper;
-import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.repository.PaymentRepository;
-import com.digitalwallet.bnkai.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
