@@ -4,11 +4,7 @@ import com.digitalwallet.bnkai.dto.EditVendorProfileRequest;
 import com.digitalwallet.bnkai.dto.VendorDTO;
 import com.digitalwallet.bnkai.dto.VendorRegisterRequest;
 import com.digitalwallet.bnkai.entity.Vendor;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.math.BigDecimal;
 import java.util.List;

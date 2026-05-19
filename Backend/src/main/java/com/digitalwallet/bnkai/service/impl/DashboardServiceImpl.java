@@ -1,31 +1,14 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.DashboardService;
-import com.digitalwallet.bnkai.service.GoldPriceService;
-
-import com.digitalwallet.bnkai.dto.DashboardDTO;
-import com.digitalwallet.bnkai.dto.HoldingDTO;
-import com.digitalwallet.bnkai.dto.PaymentDTO;
-import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
-import com.digitalwallet.bnkai.dto.TransactionDTO;
-import com.digitalwallet.bnkai.dto.EditProfileRequest;
-import com.digitalwallet.bnkai.entity.User;
+import com.digitalwallet.bnkai.dto.*;
 import com.digitalwallet.bnkai.entity.Address;
+import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
 import com.digitalwallet.bnkai.exception.UserNotFoundException;
-import com.digitalwallet.bnkai.mapper.AddressMapper;
-import com.digitalwallet.bnkai.mapper.DashboardMapper;
-import com.digitalwallet.bnkai.mapper.HoldingMapper;
-import com.digitalwallet.bnkai.mapper.PaymentMapper;
-import com.digitalwallet.bnkai.mapper.PhysicalGoldMapper;
-import com.digitalwallet.bnkai.mapper.TransactionMapper;
-import com.digitalwallet.bnkai.mapper.UserMapper;
-import com.digitalwallet.bnkai.repository.TransactionHistoryRepository;
-import com.digitalwallet.bnkai.repository.UserRepository;
-import com.digitalwallet.bnkai.repository.AddressRepository;
-import com.digitalwallet.bnkai.repository.VirtualGoldHoldingRepository;
-import com.digitalwallet.bnkai.repository.PhysicalGoldTransactionRepository;
-import com.digitalwallet.bnkai.repository.PaymentRepository;
+import com.digitalwallet.bnkai.mapper.*;
+import com.digitalwallet.bnkai.repository.*;
+import com.digitalwallet.bnkai.service.DashboardService;
+import com.digitalwallet.bnkai.service.GoldPriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -37,12 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_ADDRESSES_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_HOLDINGS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PAYMENTS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PHYSICAL_GOLD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_TRANSACTIONS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 
 @Service
 @RequiredArgsConstructor

@@ -1,14 +1,7 @@
 package com.digitalwallet.bnkai.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.digitalwallet.bnkai.dto.AddBranchRequest;
-import com.digitalwallet.bnkai.dto.AddGoldRequest;
-import com.digitalwallet.bnkai.dto.GoldPriceDTO;
-import com.digitalwallet.bnkai.dto.HoldingDTO;
-import com.digitalwallet.bnkai.dto.TransactionDTO;
-import com.digitalwallet.bnkai.dto.VendorBranchDTO;
-import com.digitalwallet.bnkai.dto.VendorDashboardDTO;
-import com.digitalwallet.bnkai.dto.VendorDTO;
+import com.digitalwallet.bnkai.dto.*;
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.mapper.VendorMapper;
 import com.digitalwallet.bnkai.repository.VendorRepository;
@@ -29,13 +22,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

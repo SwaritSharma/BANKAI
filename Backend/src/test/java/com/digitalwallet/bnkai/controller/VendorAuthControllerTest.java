@@ -2,12 +2,17 @@ package com.digitalwallet.bnkai.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.digitalwallet.bnkai.dto.LoginRequest;
+import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.mapper.AddressMapper;
 import com.digitalwallet.bnkai.mapper.VendorBranchMapper;
 import com.digitalwallet.bnkai.mapper.VendorMapper;
+import com.digitalwallet.bnkai.repository.AddressRepository;
+import com.digitalwallet.bnkai.repository.VendorBranchRepository;
+import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
+import com.digitalwallet.bnkai.service.GoldPriceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -18,20 +23,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import com.digitalwallet.bnkai.repository.VendorRepository;
-import com.digitalwallet.bnkai.repository.VendorBranchRepository;
-import com.digitalwallet.bnkai.repository.AddressRepository;
-import com.digitalwallet.bnkai.service.GoldPriceService;
-import com.digitalwallet.bnkai.entity.Vendor;
+
 import java.util.Optional;
 
-import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.nullValue;
-
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

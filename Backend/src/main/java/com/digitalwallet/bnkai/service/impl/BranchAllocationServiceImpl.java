@@ -1,7 +1,5 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.BranchAllocationService;
-
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.exception.AddressNotFoundException;
@@ -10,6 +8,7 @@ import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.exception.VendorNotFoundException;
 import com.digitalwallet.bnkai.repository.AddressRepository;
 import com.digitalwallet.bnkai.repository.VendorBranchRepository;
+import com.digitalwallet.bnkai.service.BranchAllocationService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

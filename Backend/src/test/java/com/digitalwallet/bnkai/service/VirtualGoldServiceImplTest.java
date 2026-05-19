@@ -1,28 +1,18 @@
 package com.digitalwallet.bnkai.service;
 
-import com.digitalwallet.bnkai.service.impl.VirtualGoldServiceImpl;
 import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.constants.TransactionConstants;
 import com.digitalwallet.bnkai.dto.BuyVirtualGoldRequest;
+import com.digitalwallet.bnkai.dto.HoldingDTO;
 import com.digitalwallet.bnkai.dto.SellVirtualGoldRequest;
-import com.digitalwallet.bnkai.entity.Address;
-import com.digitalwallet.bnkai.entity.User;
-import com.digitalwallet.bnkai.entity.Vendor;
-import com.digitalwallet.bnkai.entity.VendorBranch;
-import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
-import com.digitalwallet.bnkai.exception.AddressNotFoundException;
-import com.digitalwallet.bnkai.exception.HoldingNotFoundException;
-import com.digitalwallet.bnkai.exception.InsufficientHoldingQuantityException;
-import com.digitalwallet.bnkai.exception.InsufficientWalletBalanceException;
-import com.digitalwallet.bnkai.exception.InvalidQuantityException;
-import com.digitalwallet.bnkai.exception.UnauthorizedHoldingAccessException;
-import com.digitalwallet.bnkai.exception.UserNotFoundException;
-import com.digitalwallet.bnkai.exception.VendorNotFoundException;
+import com.digitalwallet.bnkai.entity.*;
+import com.digitalwallet.bnkai.exception.*;
 import com.digitalwallet.bnkai.mapper.HoldingMapper;
 import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.repository.VendorBranchRepository;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.repository.VirtualGoldHoldingRepository;
+import com.digitalwallet.bnkai.service.impl.VirtualGoldServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -135,6 +125,9 @@ class VirtualGoldServiceImplTest {
         sellRequest.setQuantity(
                 new BigDecimal("1")
         );
+
+        lenient().when(vendorBranchRepository.findByBranchIdForUpdate(anyInt()))
+                 .thenReturn(Optional.of(branch));
     }
 
     // =========================================
@@ -153,8 +146,16 @@ class VirtualGoldServiceImplTest {
                         invocation.getArgument(3)
                 ));
 
+        when(holdingMapper.toDto(any(VirtualGoldHolding.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    VirtualGoldHolding h = invocation.getArgument(0);
+                    HoldingDTO dto = new HoldingDTO();
+                    dto.setQuantity(h.getQuantity());
+                    return dto;
+                });
+
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -174,7 +175,7 @@ class VirtualGoldServiceImplTest {
         ).thenReturn(branch);
 
         when(
-                holdingRepository.findByUserUserIdAndBranchBranchId(
+                holdingRepository.findByUserUserIdAndBranchBranchIdForUpdate(
                         1,
                         1
                 )
@@ -197,7 +198,7 @@ class VirtualGoldServiceImplTest {
                 )
         ).thenReturn(branch);
 
-        VirtualGoldHolding holding =
+        HoldingDTO holding =
                 virtualGoldService.buyVirtualGold(
                         buyRequest
                 );
@@ -260,8 +261,16 @@ class VirtualGoldServiceImplTest {
                 new BigDecimal("2")
         );
 
+        when(holdingMapper.toDto(any(VirtualGoldHolding.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    VirtualGoldHolding h = invocation.getArgument(0);
+                    HoldingDTO dto = new HoldingDTO();
+                    dto.setQuantity(h.getQuantity());
+                    return dto;
+                });
+
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -281,7 +290,7 @@ class VirtualGoldServiceImplTest {
         ).thenReturn(branch);
 
         when(
-                holdingRepository.findByUserUserIdAndBranchBranchId(
+                holdingRepository.findByUserUserIdAndBranchBranchIdForUpdate(
                         1,
                         1
                 )
@@ -304,7 +313,7 @@ class VirtualGoldServiceImplTest {
                 )
         ).thenReturn(branch);
 
-        VirtualGoldHolding updatedHolding =
+        HoldingDTO updatedHolding =
                 virtualGoldService.buyVirtualGold(
                         buyRequest
                 );
@@ -338,7 +347,7 @@ class VirtualGoldServiceImplTest {
     void buyVirtualGold_ShouldThrowUserNotFoundException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.empty()
         );
@@ -358,7 +367,7 @@ class VirtualGoldServiceImplTest {
         user.setAddress(null);
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -376,7 +385,7 @@ class VirtualGoldServiceImplTest {
     void buyVirtualGold_ShouldThrowVendorNotFoundException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -404,7 +413,7 @@ class VirtualGoldServiceImplTest {
         );
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -440,7 +449,7 @@ class VirtualGoldServiceImplTest {
     void sellVirtualGold_ShouldSellSuccessfully() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -458,8 +467,17 @@ class VirtualGoldServiceImplTest {
                 new BigDecimal("5")
         );
 
+        when(holdingMapper.toDto(any(VirtualGoldHolding.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    VirtualGoldHolding h = invocation.getArgument(0);
+                    HoldingDTO dto = new HoldingDTO();
+                    dto.setHoldingId(h.getHoldingId());
+                    dto.setQuantity(h.getQuantity());
+                    return dto;
+                });
+
         when(
-                holdingRepository.findById(1)
+                holdingRepository.findByHoldingIdForUpdate(1)
         ).thenReturn(
                 Optional.of(holding)
         );
@@ -479,7 +497,7 @@ class VirtualGoldServiceImplTest {
                 )
         ).thenReturn(branch);
 
-        VirtualGoldHolding updatedHolding =
+        HoldingDTO updatedHolding =
                 virtualGoldService.sellVirtualGold(
                         sellRequest
                 );
@@ -530,13 +548,13 @@ class VirtualGoldServiceImplTest {
     void sellVirtualGold_ShouldThrowHoldingNotFoundException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
 
         when(
-                holdingRepository.findById(1)
+                holdingRepository.findByHoldingIdForUpdate(1)
         ).thenReturn(
                 Optional.empty()
         );
@@ -554,7 +572,7 @@ class VirtualGoldServiceImplTest {
     void sellVirtualGold_ShouldThrowUnauthorizedHoldingAccessException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -576,7 +594,7 @@ class VirtualGoldServiceImplTest {
         );
 
         when(
-                holdingRepository.findById(1)
+                holdingRepository.findByHoldingIdForUpdate(1)
         ).thenReturn(
                 Optional.of(holding)
         );
@@ -594,7 +612,7 @@ class VirtualGoldServiceImplTest {
     void sellVirtualGold_ShouldThrowInsufficientHoldingQuantityException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -611,7 +629,7 @@ class VirtualGoldServiceImplTest {
         );
 
         when(
-                holdingRepository.findById(1)
+                holdingRepository.findByHoldingIdForUpdate(1)
         ).thenReturn(
                 Optional.of(holding)
         );
@@ -629,7 +647,7 @@ class VirtualGoldServiceImplTest {
     void sellVirtualGold_ShouldDeleteHolding_WhenQuantityBecomesZero() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -647,8 +665,17 @@ class VirtualGoldServiceImplTest {
                 new BigDecimal("1")
         );
 
+        when(holdingMapper.toDto(any(VirtualGoldHolding.class), any(BigDecimal.class)))
+                .thenAnswer(invocation -> {
+                    VirtualGoldHolding h = invocation.getArgument(0);
+                    HoldingDTO dto = new HoldingDTO();
+                    dto.setHoldingId(h.getHoldingId());
+                    dto.setQuantity(h.getQuantity());
+                    return dto;
+                });
+
         when(
-                holdingRepository.findById(1)
+                holdingRepository.findByHoldingIdForUpdate(1)
         ).thenReturn(
                 Optional.of(holding)
         );

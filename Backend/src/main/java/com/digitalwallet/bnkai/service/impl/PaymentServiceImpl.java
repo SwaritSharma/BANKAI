@@ -1,12 +1,11 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.PaymentService;
-
 import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.entity.Payment;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.mapper.PaymentMapper;
 import com.digitalwallet.bnkai.repository.PaymentRepository;
+import com.digitalwallet.bnkai.service.PaymentService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

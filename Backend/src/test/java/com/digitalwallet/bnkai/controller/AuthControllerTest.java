@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.digitalwallet.bnkai.dto.LoginRequest;
 import com.digitalwallet.bnkai.mapper.AddressMapper;
 import com.digitalwallet.bnkai.mapper.UserMapper;
+import com.digitalwallet.bnkai.repository.AddressRepository;
+import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
@@ -16,20 +18,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import com.digitalwallet.bnkai.repository.UserRepository;
-import com.digitalwallet.bnkai.repository.AddressRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

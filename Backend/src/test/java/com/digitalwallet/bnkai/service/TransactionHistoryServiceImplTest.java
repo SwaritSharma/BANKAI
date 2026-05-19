@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.service;
 
-import com.digitalwallet.bnkai.service.impl.TransactionHistoryServiceImpl;
 import com.digitalwallet.bnkai.constants.TransactionConstants;
 import com.digitalwallet.bnkai.entity.TransactionHistory;
 import com.digitalwallet.bnkai.entity.User;
@@ -8,6 +7,7 @@ import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.mapper.TransactionMapper;
 import com.digitalwallet.bnkai.repository.TransactionHistoryRepository;
+import com.digitalwallet.bnkai.service.impl.TransactionHistoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

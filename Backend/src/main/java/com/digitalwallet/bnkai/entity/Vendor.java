@@ -1,12 +1,7 @@
 package com.digitalwallet.bnkai.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +32,7 @@ public class Vendor {
     @Column(name = "contact_person_name")
     private String contactPersonName;
 
-    @Column(name = "contact_email")
+    @Column(name = "contact_email", nullable = false, unique = true)
     private String contactEmail;
 
     @Column(name = "contact_phone")

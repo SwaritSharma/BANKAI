@@ -3,7 +3,6 @@ package com.digitalwallet.bnkai.controller;
 import com.digitalwallet.bnkai.dto.BuyPhysicalGoldRequest;
 import com.digitalwallet.bnkai.dto.ConvertToPhysicalGoldRequest;
 import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
-import com.digitalwallet.bnkai.mapper.PhysicalGoldMapper;
 import com.digitalwallet.bnkai.service.PhysicalGoldService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class PhysicalGoldController {
 
     private final PhysicalGoldService physicalGoldService;
-    private final PhysicalGoldMapper physicalGoldMapper;
 
     @PostMapping("/buy")
     public ResponseEntity<PhysicalGoldDTO> buyPhysicalGold(@Valid @RequestBody BuyPhysicalGoldRequest request) {
-        return ResponseEntity.ok(physicalGoldMapper.toDto(physicalGoldService.buyPhysicalGold(request)));
+        return ResponseEntity.ok(physicalGoldService.buyPhysicalGold(request));
     }
 
     @PostMapping("/convert")
     public ResponseEntity<PhysicalGoldDTO> convertToPhysicalGold(@Valid @RequestBody ConvertToPhysicalGoldRequest request) {
-        return ResponseEntity.ok(physicalGoldMapper.toDto(physicalGoldService.convertToPhysicalGold(request)));
+        return ResponseEntity.ok(physicalGoldService.convertToPhysicalGold(request));
     }
 }

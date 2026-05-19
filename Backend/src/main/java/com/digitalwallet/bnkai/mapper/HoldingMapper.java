@@ -4,12 +4,7 @@ import com.digitalwallet.bnkai.dto.HoldingDTO;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

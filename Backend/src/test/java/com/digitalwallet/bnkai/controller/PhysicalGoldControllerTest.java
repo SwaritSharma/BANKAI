@@ -22,9 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,8 +61,7 @@ class PhysicalGoldControllerTest {
         dto.setPhysicalTransactionId(99);
         dto.setQuantity(new BigDecimal("2.00"));
 
-        when(physicalGoldService.buyPhysicalGold(any(BuyPhysicalGoldRequest.class))).thenReturn(transaction);
-        when(physicalGoldMapper.toDto(transaction)).thenReturn(dto);
+        when(physicalGoldService.buyPhysicalGold(any(BuyPhysicalGoldRequest.class))).thenReturn(dto);
 
         mockMvc.perform(post("/physical-gold/buy")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,8 +97,7 @@ class PhysicalGoldControllerTest {
         dto.setPhysicalTransactionId(100);
         dto.setQuantity(new BigDecimal("1.00"));
 
-        when(physicalGoldService.convertToPhysicalGold(any(ConvertToPhysicalGoldRequest.class))).thenReturn(transaction);
-        when(physicalGoldMapper.toDto(transaction)).thenReturn(dto);
+        when(physicalGoldService.convertToPhysicalGold(any(ConvertToPhysicalGoldRequest.class))).thenReturn(dto);
 
         mockMvc.perform(post("/physical-gold/convert")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,13 +1,6 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.VendorDashboardService;
-import com.digitalwallet.bnkai.service.GoldPriceService;
-
-import com.digitalwallet.bnkai.dto.AddBranchRequest;
-import com.digitalwallet.bnkai.dto.TransactionDTO;
-import com.digitalwallet.bnkai.dto.VendorBranchDTO;
-import com.digitalwallet.bnkai.dto.VendorDashboardDTO;
-import com.digitalwallet.bnkai.dto.EditVendorProfileRequest;
+import com.digitalwallet.bnkai.dto.*;
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.TransactionHistory;
 import com.digitalwallet.bnkai.entity.Vendor;
@@ -15,15 +8,10 @@ import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.exception.BranchAllocationException;
 import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.exception.VendorNotFoundException;
-import com.digitalwallet.bnkai.mapper.AddressMapper;
-import com.digitalwallet.bnkai.mapper.TransactionMapper;
-import com.digitalwallet.bnkai.mapper.VendorBranchMapper;
-import com.digitalwallet.bnkai.mapper.VendorDashboardMapper;
-import com.digitalwallet.bnkai.mapper.VendorMapper;
-import com.digitalwallet.bnkai.repository.AddressRepository;
-import com.digitalwallet.bnkai.repository.TransactionHistoryRepository;
-import com.digitalwallet.bnkai.repository.VendorBranchRepository;
-import com.digitalwallet.bnkai.repository.VendorRepository;
+import com.digitalwallet.bnkai.mapper.*;
+import com.digitalwallet.bnkai.repository.*;
+import com.digitalwallet.bnkai.service.GoldPriceService;
+import com.digitalwallet.bnkai.service.VendorDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,14 +19,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_BRANCHES_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_TRANSACTIONS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDORS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +39,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
     private final VendorBranchMapper vendorBranchMapper;
     private final TransactionMapper transactionMapper;
     private final VendorDashboardMapper vendorDashboardMapper;
+    private final VirtualGoldHoldingRepository holdingRepository;
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = VENDOR_DASHBOARD_CACHE, key = "#vendorId")
@@ -65,13 +51,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
                 .map(branch -> branch.getQuantity() != null ? branch.getQuantity() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Calculate sold quantity from transactions where type is 'BUY' (user buys from vendor)
-        // Wait, if transaction type is BUY, it means the user bought gold from this vendor, so vendor sold it.
-        // Let's assume all BUY transactions for this vendor's branches count.
-        // For simplicity, we can query all transactions and filter.
-        // But since we don't have a specific repo method for vendor transactions easily, let's just use the vendor's total_gold_quantity or similar.
-        // Wait, Vendor entity has totalGoldQuantity.
-        BigDecimal totalSold = BigDecimal.ZERO; 
+        BigDecimal totalSold = transactionRepository.sumQuantityByVendorIdAndTransactionTypeAndTransactionStatus(vendorId); 
         
         return vendorDashboardMapper.toDashboard(
                 vendor,
@@ -145,6 +125,9 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
         VendorBranch branch = vendorBranchRepository.findById(branchId).orElseThrow(() -> new BranchAllocationException("Branch not found"));
         if (branch.getVendor() == null || !branch.getVendor().getVendorId().equals(vendorId)) {
             throw new BranchAllocationException("Branch does not belong to this vendor");
+        }
+        if (transactionRepository.existsByBranchBranchId(branchId) || holdingRepository.existsByBranchBranchId(branchId)) {
+            throw new BranchAllocationException("Cannot delete branch because it has active holdings or transaction history");
         }
         vendorBranchRepository.delete(branch);
     }

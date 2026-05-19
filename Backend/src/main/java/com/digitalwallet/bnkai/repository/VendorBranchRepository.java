@@ -2,9 +2,13 @@ package com.digitalwallet.bnkai.repository;
 
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.projection.BranchSummaryProjection;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.math.BigDecimal;
@@ -70,5 +74,11 @@ public interface VendorBranchRepository
     Optional<VendorBranch>
     findFirstByVendorVendorIdOrderByQuantityAsc(
             Integer vendorId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from VendorBranch b where b.branchId = :branchId")
+    Optional<VendorBranch> findByBranchIdForUpdate(
+            @Param("branchId") Integer branchId
     );
 }

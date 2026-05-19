@@ -1,14 +1,15 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.WalletService;
-import com.digitalwallet.bnkai.service.PaymentService;
-
 import com.digitalwallet.bnkai.constants.PaymentConstants;
+import com.digitalwallet.bnkai.dto.UserDTO;
 import com.digitalwallet.bnkai.dto.WalletTopupRequest;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.exception.UserNotFoundException;
+import com.digitalwallet.bnkai.mapper.UserMapper;
 import com.digitalwallet.bnkai.repository.UserRepository;
+import com.digitalwallet.bnkai.service.PaymentService;
+import com.digitalwallet.bnkai.service.WalletService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,13 @@ public class WalletServiceImpl
     private final PaymentService
             paymentService;
 
+    private final UserMapper
+            userMapper;
+
     public WalletServiceImpl(
             UserRepository userRepository,
-            PaymentService paymentService
+            PaymentService paymentService,
+            UserMapper userMapper
     ) {
 
         this.userRepository =
@@ -38,6 +43,9 @@ public class WalletServiceImpl
 
         this.paymentService =
                 paymentService;
+
+        this.userMapper =
+                userMapper;
     }
 
     @Override
@@ -46,7 +54,7 @@ public class WalletServiceImpl
             USER_DASHBOARD_CACHE,
             USER_PAYMENTS_CACHE
     }, key = "#request.userId")
-    public User topupWallet(
+    public UserDTO topupWallet(
             WalletTopupRequest request
     ) {
 
@@ -67,7 +75,7 @@ public class WalletServiceImpl
 
         User user =
                 userRepository
-                        .findById(
+                        .findByUserIdForUpdate(
                                 request.getUserId()
                         )
                         .orElseThrow(
@@ -100,10 +108,6 @@ public class WalletServiceImpl
         User savedUser = userRepository
                 .save(user);
 
-        if (savedUser.getAddress() != null) {
-            savedUser.getAddress().getCity();
-        }
-
-        return savedUser;
+        return userMapper.toDto(savedUser);
     }
 }

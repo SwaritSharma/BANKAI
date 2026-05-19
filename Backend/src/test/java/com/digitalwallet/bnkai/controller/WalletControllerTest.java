@@ -1,8 +1,8 @@
 package com.digitalwallet.bnkai.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.digitalwallet.bnkai.dto.WalletTopupRequest;
 import com.digitalwallet.bnkai.dto.UserDTO;
+import com.digitalwallet.bnkai.dto.WalletTopupRequest;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.mapper.UserMapper;
@@ -21,9 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,8 +64,7 @@ class WalletControllerTest {
         dto.setEmail("pradeep.kumar@example.in");
         dto.setBalance(new BigDecimal("1500.00"));
 
-        when(walletService.topupWallet(any(WalletTopupRequest.class))).thenReturn(user);
-        when(userMapper.toDto(user)).thenReturn(dto);
+        when(walletService.topupWallet(any(WalletTopupRequest.class))).thenReturn(dto);
 
         mockMvc.perform(post("/wallet/topup")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,13 +1,9 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.VirtualGoldService;
-import com.digitalwallet.bnkai.service.BranchAllocationService;
-import com.digitalwallet.bnkai.service.TransactionHistoryService;
-import com.digitalwallet.bnkai.service.PaymentService;
-
 import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.constants.TransactionConstants;
 import com.digitalwallet.bnkai.dto.BuyVirtualGoldRequest;
+import com.digitalwallet.bnkai.dto.HoldingDTO;
 import com.digitalwallet.bnkai.dto.SellVirtualGoldRequest;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.entity.Vendor;
@@ -19,6 +15,10 @@ import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.repository.VendorBranchRepository;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.repository.VirtualGoldHoldingRepository;
+import com.digitalwallet.bnkai.service.BranchAllocationService;
+import com.digitalwallet.bnkai.service.PaymentService;
+import com.digitalwallet.bnkai.service.TransactionHistoryService;
+import com.digitalwallet.bnkai.service.VirtualGoldService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -27,14 +27,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_HOLDINGS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PAYMENTS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_TRANSACTIONS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_BRANCHES_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_TRANSACTIONS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDORS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 
 @Service
 public class VirtualGoldServiceImpl
@@ -111,7 +104,7 @@ public class VirtualGoldServiceImpl
             @CacheEvict(cacheNames = {USER_DASHBOARD_CACHE, USER_HOLDINGS_CACHE, USER_TRANSACTIONS_CACHE, USER_PAYMENTS_CACHE}, key = "#request.userId"),
             @CacheEvict(cacheNames = {VENDOR_DASHBOARD_CACHE, VENDOR_BRANCHES_CACHE, VENDOR_TRANSACTIONS_CACHE, VENDORS_CACHE}, key = "#request.vendorId")
     })
-    public VirtualGoldHolding
+    public HoldingDTO
     buyVirtualGold(
             BuyVirtualGoldRequest request
     ) {
@@ -133,7 +126,7 @@ public class VirtualGoldServiceImpl
 
         User user =
                 userRepository
-                        .findById(
+                        .findByUserIdForUpdate(
                                 request.getUserId()
                         )
                         .orElseThrow(
@@ -171,6 +164,9 @@ public class VirtualGoldServiceImpl
                                 request.getQuantity()
                         );
 
+        allocatedBranch = vendorBranchRepository.findByBranchIdForUpdate(allocatedBranch.getBranchId())
+                .orElseThrow(() -> new BranchAllocationException("Allocated branch not found"));
+
         BigDecimal totalAmount =
                 allocatedBranch
                         .getVendor()
@@ -204,7 +200,7 @@ public class VirtualGoldServiceImpl
 
         VirtualGoldHolding holding =
                 holdingRepository
-                        .findByUserUserIdAndBranchBranchId(
+                        .findByUserUserIdAndBranchBranchIdForUpdate(
                                 user.getUserId(),
                                 allocatedBranch
                                         .getBranchId()
@@ -249,8 +245,13 @@ public class VirtualGoldServiceImpl
         vendorBranchRepository
                 .save(allocatedBranch);
 
-        return holdingRepository
+        VirtualGoldHolding savedHolding = holdingRepository
                 .save(holding);
+
+        return holdingMapper.toDto(
+                savedHolding,
+                allocatedBranch.getVendor().getCurrentGoldPrice()
+        );
     }
 
     @Override
@@ -259,7 +260,7 @@ public class VirtualGoldServiceImpl
             @CacheEvict(cacheNames = {USER_DASHBOARD_CACHE, USER_HOLDINGS_CACHE, USER_TRANSACTIONS_CACHE, USER_PAYMENTS_CACHE}, key = "#request.userId"),
             @CacheEvict(cacheNames = {VENDOR_DASHBOARD_CACHE, VENDOR_BRANCHES_CACHE, VENDOR_TRANSACTIONS_CACHE, VENDORS_CACHE}, allEntries = true)
     })
-    public VirtualGoldHolding
+    public HoldingDTO
     sellVirtualGold(
             SellVirtualGoldRequest request
     ) {
@@ -281,7 +282,7 @@ public class VirtualGoldServiceImpl
 
         User user =
                 userRepository
-                        .findById(
+                        .findByUserIdForUpdate(
                                 request.getUserId()
                         )
                         .orElseThrow(
@@ -293,7 +294,7 @@ public class VirtualGoldServiceImpl
 
         VirtualGoldHolding holding =
                 holdingRepository
-                        .findById(
+                        .findByHoldingIdForUpdate(
                                 request.getHoldingId()
                         )
                         .orElseThrow(
@@ -330,7 +331,8 @@ public class VirtualGoldServiceImpl
         }
 
         VendorBranch branch =
-                holding.getBranch();
+                vendorBranchRepository.findByBranchIdForUpdate(holding.getBranch().getBranchId())
+                        .orElseThrow(() -> new BranchAllocationException("Branch not found"));
 
         BigDecimal totalAmount =
                 branch.getVendor()
@@ -386,15 +388,24 @@ public class VirtualGoldServiceImpl
                         .compareTo(BigDecimal.ZERO)
                         == 0
         ) {
+            HoldingDTO dto = holdingMapper.toDto(
+                    holding,
+                    branch.getVendor().getCurrentGoldPrice()
+            );
 
             holdingRepository.delete(
                     holding
             );
 
-            return holding;
+            return dto;
         }
 
-        return holdingRepository
+        VirtualGoldHolding savedHolding = holdingRepository
                 .save(holding);
+
+        return holdingMapper.toDto(
+                savedHolding,
+                branch.getVendor().getCurrentGoldPrice()
+        );
     }
 }

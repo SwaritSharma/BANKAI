@@ -1,12 +1,7 @@
 package com.digitalwallet.bnkai.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.digitalwallet.bnkai.dto.DashboardDTO;
-import com.digitalwallet.bnkai.dto.EditProfileRequest;
-import com.digitalwallet.bnkai.dto.HoldingDTO;
-import com.digitalwallet.bnkai.dto.PaymentDTO;
-import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
-import com.digitalwallet.bnkai.dto.TransactionDTO;
+import com.digitalwallet.bnkai.dto.*;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;

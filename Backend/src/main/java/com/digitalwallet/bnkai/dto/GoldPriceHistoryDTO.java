@@ -1,6 +1,7 @@
 package com.digitalwallet.bnkai.dto;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 
 @Data

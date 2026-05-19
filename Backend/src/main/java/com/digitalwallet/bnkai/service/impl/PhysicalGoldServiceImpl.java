@@ -1,28 +1,18 @@
 package com.digitalwallet.bnkai.service.impl;
 
-import com.digitalwallet.bnkai.service.PhysicalGoldService;
-import com.digitalwallet.bnkai.service.BranchAllocationService;
-import com.digitalwallet.bnkai.service.TransactionHistoryService;
-import com.digitalwallet.bnkai.service.PaymentService;
-
 import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.constants.TransactionConstants;
 import com.digitalwallet.bnkai.dto.BuyPhysicalGoldRequest;
 import com.digitalwallet.bnkai.dto.ConvertToPhysicalGoldRequest;
-import com.digitalwallet.bnkai.entity.Address;
-import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
-import com.digitalwallet.bnkai.entity.User;
-import com.digitalwallet.bnkai.entity.Vendor;
-import com.digitalwallet.bnkai.entity.VendorBranch;
-import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
+import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
+import com.digitalwallet.bnkai.entity.*;
 import com.digitalwallet.bnkai.exception.*;
 import com.digitalwallet.bnkai.mapper.PhysicalGoldMapper;
-import com.digitalwallet.bnkai.repository.AddressRepository;
-import com.digitalwallet.bnkai.repository.PhysicalGoldTransactionRepository;
-import com.digitalwallet.bnkai.repository.UserRepository;
-import com.digitalwallet.bnkai.repository.VendorBranchRepository;
-import com.digitalwallet.bnkai.repository.VendorRepository;
-import com.digitalwallet.bnkai.repository.VirtualGoldHoldingRepository;
+import com.digitalwallet.bnkai.repository.*;
+import com.digitalwallet.bnkai.service.BranchAllocationService;
+import com.digitalwallet.bnkai.service.PaymentService;
+import com.digitalwallet.bnkai.service.PhysicalGoldService;
+import com.digitalwallet.bnkai.service.TransactionHistoryService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -31,15 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_HOLDINGS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PAYMENTS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PHYSICAL_GOLD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_TRANSACTIONS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_BRANCHES_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_DASHBOARD_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_TRANSACTIONS_CACHE;
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDORS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 
 @Service
 public class PhysicalGoldServiceImpl
@@ -135,8 +117,7 @@ public class PhysicalGoldServiceImpl
             @CacheEvict(cacheNames = {USER_DASHBOARD_CACHE, USER_TRANSACTIONS_CACHE, USER_PAYMENTS_CACHE, USER_PHYSICAL_GOLD_CACHE}, key = "#request.userId"),
             @CacheEvict(cacheNames = {VENDOR_DASHBOARD_CACHE, VENDOR_BRANCHES_CACHE, VENDOR_TRANSACTIONS_CACHE, VENDORS_CACHE}, key = "#request.vendorId")
     })
-    public PhysicalGoldTransaction
-    buyPhysicalGold(
+    public PhysicalGoldDTO buyPhysicalGold(
             BuyPhysicalGoldRequest request
     ) {
 
@@ -157,7 +138,7 @@ public class PhysicalGoldServiceImpl
 
         User user =
                 userRepository
-                        .findById(
+                        .findByUserIdForUpdate(
                                 request.getUserId()
                         )
                         .orElseThrow(
@@ -199,6 +180,9 @@ public class PhysicalGoldServiceImpl
                                         .getAddressId(),
                                 request.getQuantity()
                         );
+
+        allocatedBranch = vendorBranchRepository.findByBranchIdForUpdate(allocatedBranch.getBranchId())
+                .orElseThrow(() -> new BranchAllocationException("Allocated branch not found"));
 
         BigDecimal totalAmount =
                 vendor.getCurrentGoldPrice()
@@ -260,8 +244,10 @@ public class PhysicalGoldServiceImpl
         vendorBranchRepository
                 .save(allocatedBranch);
 
-        return physicalGoldTransactionRepository
+        PhysicalGoldTransaction savedTransaction = physicalGoldTransactionRepository
                 .save(transaction);
+
+        return physicalGoldMapper.toDto(savedTransaction);
     }
 
     @Override
@@ -270,8 +256,7 @@ public class PhysicalGoldServiceImpl
             @CacheEvict(cacheNames = {USER_DASHBOARD_CACHE, USER_HOLDINGS_CACHE, USER_TRANSACTIONS_CACHE, USER_PHYSICAL_GOLD_CACHE}, key = "#request.userId"),
             @CacheEvict(cacheNames = {VENDOR_DASHBOARD_CACHE, VENDOR_BRANCHES_CACHE, VENDOR_TRANSACTIONS_CACHE, VENDORS_CACHE}, allEntries = true)
     })
-    public PhysicalGoldTransaction
-    convertToPhysicalGold(
+    public PhysicalGoldDTO convertToPhysicalGold(
             ConvertToPhysicalGoldRequest request
     ) {
 
@@ -292,7 +277,7 @@ public class PhysicalGoldServiceImpl
 
         User user =
                 userRepository
-                        .findById(
+                        .findByUserIdForUpdate(
                                 request.getUserId()
                         )
                         .orElseThrow(
@@ -311,7 +296,7 @@ public class PhysicalGoldServiceImpl
 
         VirtualGoldHolding holding =
                 holdingRepository
-                        .findById(
+                        .findByHoldingIdForUpdate(
                                 request.getHoldingId()
                         )
                         .orElseThrow(
@@ -369,6 +354,9 @@ public class PhysicalGoldServiceImpl
                                         .getAddressId(),
                                 request.getQuantity()
                         );
+
+        allocatedBranch = vendorBranchRepository.findByBranchIdForUpdate(allocatedBranch.getBranchId())
+                .orElseThrow(() -> new BranchAllocationException("Allocated branch not found"));
 
         allocatedBranch.setQuantity(
                 allocatedBranch.getQuantity()
@@ -430,7 +418,9 @@ public class PhysicalGoldServiceImpl
             );
         }
 
-        return physicalGoldTransactionRepository
+        PhysicalGoldTransaction savedTransaction = physicalGoldTransactionRepository
                 .save(transaction);
+
+        return physicalGoldMapper.toDto(savedTransaction);
     }
 }

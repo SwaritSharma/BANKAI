@@ -4,11 +4,7 @@ import com.digitalwallet.bnkai.dto.EditProfileRequest;
 import com.digitalwallet.bnkai.dto.RegisterRequest;
 import com.digitalwallet.bnkai.dto.UserDTO;
 import com.digitalwallet.bnkai.entity.User;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring", uses = AddressMapper.class)
 public interface UserMapper {

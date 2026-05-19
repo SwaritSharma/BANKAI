@@ -1,18 +1,7 @@
 package com.digitalwallet.bnkai.mapper;
 
-import com.digitalwallet.bnkai.dto.AddBranchRequest;
-import com.digitalwallet.bnkai.dto.EditVendorProfileRequest;
-import com.digitalwallet.bnkai.dto.HoldingDTO;
-import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
-import com.digitalwallet.bnkai.dto.TransactionDTO;
-import com.digitalwallet.bnkai.dto.UserDTO;
-import com.digitalwallet.bnkai.entity.Address;
-import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
-import com.digitalwallet.bnkai.entity.TransactionHistory;
-import com.digitalwallet.bnkai.entity.User;
-import com.digitalwallet.bnkai.entity.Vendor;
-import com.digitalwallet.bnkai.entity.VendorBranch;
-import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
+import com.digitalwallet.bnkai.dto.*;
+import com.digitalwallet.bnkai.entity.*;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.springframework.test.util.ReflectionTestUtils;

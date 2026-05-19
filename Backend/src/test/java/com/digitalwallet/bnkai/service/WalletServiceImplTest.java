@@ -1,12 +1,14 @@
 package com.digitalwallet.bnkai.service;
 
-import com.digitalwallet.bnkai.service.impl.WalletServiceImpl;
 import com.digitalwallet.bnkai.constants.PaymentConstants;
+import com.digitalwallet.bnkai.dto.UserDTO;
 import com.digitalwallet.bnkai.dto.WalletTopupRequest;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.exception.UserNotFoundException;
+import com.digitalwallet.bnkai.mapper.UserMapper;
 import com.digitalwallet.bnkai.repository.UserRepository;
+import com.digitalwallet.bnkai.service.impl.WalletServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +33,10 @@ class WalletServiceImplTest {
     @Mock
     private PaymentService
             paymentService;
+
+    @Mock
+    private UserMapper
+            userMapper;
 
     @InjectMocks
     private WalletServiceImpl
@@ -70,7 +76,7 @@ class WalletServiceImplTest {
     void topupWallet_ShouldAddBalanceSuccessfully() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -79,7 +85,17 @@ class WalletServiceImplTest {
                 userRepository.save(user)
         ).thenReturn(user);
 
-        User savedUser =
+        when(
+                userMapper.toDto(any(User.class))
+        ).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            UserDTO dto = new UserDTO();
+            dto.setUserId(u.getUserId());
+            dto.setBalance(u.getBalance());
+            return dto;
+        });
+
+        UserDTO savedUser =
                 walletService
                         .topupWallet(request);
 
@@ -116,14 +132,14 @@ class WalletServiceImplTest {
 
         verify(userRepository,
                 never()
-        ).findById(anyInt());
+        ).findByUserIdForUpdate(anyInt());
     }
 
     @Test
     void topupWallet_ShouldThrowUserNotFoundException() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.empty()
         );
@@ -156,14 +172,14 @@ class WalletServiceImplTest {
 
         verify(userRepository,
                 never()
-        ).findById(anyInt());
+        ).findByUserIdForUpdate(anyInt());
     }
 
     @Test
     void topupWallet_ShouldCallPaymentService() {
 
         when(
-                userRepository.findById(1)
+                userRepository.findByUserIdForUpdate(1)
         ).thenReturn(
                 Optional.of(user)
         );
@@ -171,6 +187,10 @@ class WalletServiceImplTest {
         when(
                 userRepository.save(user)
         ).thenReturn(user);
+
+        when(
+                userMapper.toDto(any(User.class))
+        ).thenReturn(new UserDTO());
 
         walletService
                 .topupWallet(request);

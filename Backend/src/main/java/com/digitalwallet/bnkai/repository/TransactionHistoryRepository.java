@@ -5,8 +5,11 @@ import com.digitalwallet.bnkai.projection.TransactionSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RepositoryRestResource(
@@ -16,6 +19,11 @@ import java.util.List;
 )
 public interface TransactionHistoryRepository
         extends JpaRepository<TransactionHistory, Integer> {
+
+    @Query("SELECT COALESCE(SUM(t.quantity), 0) FROM TransactionHistory t WHERE t.branch.vendor.vendorId = :vendorId AND t.transactionType = 'Buy' AND t.transactionStatus = 'Success'")
+    BigDecimal sumQuantityByVendorIdAndTransactionTypeAndTransactionStatus(
+            @Param("vendorId") Integer vendorId
+    );
 
     Page<TransactionHistory>
     findByUserUserId(
@@ -76,4 +84,6 @@ public interface TransactionHistoryRepository
             Integer vendorId,
             Pageable pageable
     );
+
+    boolean existsByBranchBranchId(Integer branchId);
 }
