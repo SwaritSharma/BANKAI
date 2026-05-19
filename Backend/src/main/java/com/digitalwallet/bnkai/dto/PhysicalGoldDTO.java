@@ -22,4 +22,3 @@ public class PhysicalGoldDTO {
     @JsonProperty("delivery_address")
     private HoldingDTO.AddressDTO deliveryAddress;
 }
-

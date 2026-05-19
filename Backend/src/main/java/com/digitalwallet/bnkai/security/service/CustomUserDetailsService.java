@@ -1,9 +1,8 @@
 package com.digitalwallet.bnkai.security.service;
 
-
-
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.repository.UserRepository;
+
 import lombok.NonNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

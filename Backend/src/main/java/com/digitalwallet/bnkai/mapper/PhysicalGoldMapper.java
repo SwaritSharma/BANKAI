@@ -1,4 +1,5 @@
 package com.digitalwallet.bnkai.mapper;
+
 import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.PhysicalGoldTransaction;
@@ -43,4 +44,3 @@ public interface PhysicalGoldMapper {
         return transaction.getBranch().getVendor().getVendorName();
     }
 }
-

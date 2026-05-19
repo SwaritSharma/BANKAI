@@ -1,6 +1,10 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.digitalwallet.bnkai.dto.*;
+import com.digitalwallet.bnkai.dto.DashboardDTO;
+import com.digitalwallet.bnkai.dto.HoldingDTO;
+import com.digitalwallet.bnkai.dto.TransactionDTO;
+import com.digitalwallet.bnkai.dto.PhysicalGoldDTO;
+import com.digitalwallet.bnkai.dto.EditProfileRequest;
 import com.digitalwallet.bnkai.service.DashboardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

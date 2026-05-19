@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.mapper;
 
-
 import com.digitalwallet.bnkai.dto.VendorDashboardDTO;
 import com.digitalwallet.bnkai.entity.Vendor;
 import org.mapstruct.Mapper;

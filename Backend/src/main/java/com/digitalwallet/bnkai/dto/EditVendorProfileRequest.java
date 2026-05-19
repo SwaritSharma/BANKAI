@@ -16,8 +16,7 @@ public class EditVendorProfileRequest {
     @Email(message = "Invalid email format")
     @Size(max = 100, message = "Contact email must be at most 100 characters")
     private String contactEmail;
-
-    @Pattern(regexp = "^$|^[+0-9 ()-]{7,20}$", message = "Contact phone must be a valid phone number")
+    @Pattern(regexp = "^\\d{10}$", message = "Contact phone must be exactly 10 digits")
     private String contactPhone;
 
     @Size(max = 1000, message = "Description must be at most 1000 characters")

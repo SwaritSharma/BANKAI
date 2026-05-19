@@ -297,4 +297,16 @@ class VendorAuthControllerTest {
                         status().isBadRequest()
                 );
     }
+    
+    @Test
+    void registerVendor_phoneLongerThanTenDigits_returnsBadRequest() throws Exception {
+        mockMvc.perform(
+                        post("/vendor/auth/register")
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"vendorName\":\"Sona Jewelers\",\"contactPersonName\":\"Rohit Verma\",\"contactEmail\":\"vendor-phone@example.com\",\"contactPhone\":\"98765432101\",\"password\":\"Password123\",\"street\":\"MG Road\",\"city\":\"Mumbai\",\"state\":\"Maharashtra\",\"postalCode\":\"400001\",\"country\":\"India\"}")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.details[0]").value("Contact phone must be exactly 10 digits"));
+    }
 }

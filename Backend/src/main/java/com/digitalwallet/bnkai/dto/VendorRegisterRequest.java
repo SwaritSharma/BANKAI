@@ -29,7 +29,7 @@ public class VendorRegisterRequest {
     private String contactEmail;
 
     @NotBlank(message = "Contact phone is required")
-    @Pattern(regexp = "^[+0-9 ()-]{7,20}$", message = "Contact phone must be a valid phone number")
+    @Pattern(regexp = "^\\d{10}$", message = "Contact phone must be exactly 10 digits")
     private String contactPhone;
 
     @NotBlank(message = "Password is required")

@@ -30,6 +30,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -137,6 +138,18 @@ class VendorControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.vendor_id").value(1))
                 .andExpect(jsonPath("$.contact_person_name").value("Rohit Verma"));
+    }
+
+    @Test
+    void updateProfile_phoneLongerThanTenDigits_returnsBadRequest() throws Exception {
+        mockMvc.perform(put("/vendors/{id}/profile", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"contactPhone\":\"98765432101\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.details[0]").value("Contact phone must be exactly 10 digits"));
+
+        verify(vendorDashboardService, never()).updateProfile(any(Integer.class), any());
     }
 
     @Test

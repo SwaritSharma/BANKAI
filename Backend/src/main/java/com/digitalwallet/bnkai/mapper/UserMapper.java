@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.mapper;
 
-
 import com.digitalwallet.bnkai.dto.EditProfileRequest;
 import com.digitalwallet.bnkai.dto.RegisterRequest;
 import com.digitalwallet.bnkai.dto.UserDTO;

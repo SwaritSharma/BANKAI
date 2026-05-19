@@ -1,5 +1,10 @@
 package com.digitalwallet.bnkai.service.impl;
 
+import com.digitalwallet.bnkai.service.VirtualGoldService;
+import com.digitalwallet.bnkai.service.BranchAllocationService;
+import com.digitalwallet.bnkai.service.TransactionHistoryService;
+import com.digitalwallet.bnkai.service.PaymentService;
+
 import com.digitalwallet.bnkai.constants.PaymentConstants;
 import com.digitalwallet.bnkai.constants.TransactionConstants;
 import com.digitalwallet.bnkai.dto.BuyVirtualGoldRequest;
@@ -14,10 +19,6 @@ import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.repository.VendorBranchRepository;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.repository.VirtualGoldHoldingRepository;
-import com.digitalwallet.bnkai.service.BranchAllocationService;
-import com.digitalwallet.bnkai.service.PaymentService;
-import com.digitalwallet.bnkai.service.TransactionHistoryService;
-import com.digitalwallet.bnkai.service.VirtualGoldService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -26,7 +27,14 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_DASHBOARD_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_HOLDINGS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_PAYMENTS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.USER_TRANSACTIONS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_BRANCHES_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_DASHBOARD_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDOR_TRANSACTIONS_CACHE;
+import static com.digitalwallet.bnkai.config.RedisCacheConfig.VENDORS_CACHE;
 
 @Service
 public class VirtualGoldServiceImpl

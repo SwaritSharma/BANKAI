@@ -30,6 +30,7 @@ public class VendorBranch {
     @Column(name = "branch_id")
     private Integer branchId;
 
+//    @ManyToOne(fetch = FetchType.LAZY)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;

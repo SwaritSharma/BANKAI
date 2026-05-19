@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.security.service;
 
-
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import lombok.NonNull;

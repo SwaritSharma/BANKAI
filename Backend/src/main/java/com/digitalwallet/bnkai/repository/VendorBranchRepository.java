@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.repository;
 
-
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.projection.BranchSummaryProjection;
 import org.springframework.data.domain.Page;
