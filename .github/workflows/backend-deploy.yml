@@ -35,7 +35,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "app.jar"
-          target: "/home/ubuntu/hotel-app"
+          target: "/home/ubuntu/dgw-app"
 
       - name: Restart Application
         uses: appleboy/ssh-action@v1.0.3
@@ -44,5 +44,5 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo systemctl restart hotel
-            sudo systemctl status hotel
+            sudo systemctl restart dgw
+            sudo systemctl status dgw
