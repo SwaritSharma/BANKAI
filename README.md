@@ -16,7 +16,7 @@ Required env vars:
 
 ### Running locally
 
-1. Create or copy `Backend/.env.example` to `Backend/.env`.
+1. Create or copy `Backend/.env.example` to `Backend/.env`, or place a `.env` file at the repo root.
 2. Update the environment variables in the file.
 3. Run the backend with Maven:
 
