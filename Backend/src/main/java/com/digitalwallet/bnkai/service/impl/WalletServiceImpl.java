@@ -12,6 +12,8 @@ import com.digitalwallet.bnkai.service.PaymentService;
 import com.digitalwallet.bnkai.service.WalletService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -84,6 +86,11 @@ public class WalletServiceImpl
                                                 "User not found"
                                         )
                         );
+
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
 
         BigDecimal currentBalance =
                 user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO;

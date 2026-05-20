@@ -12,6 +12,7 @@ import com.digitalwallet.bnkai.mapper.AddressMapper;
 import com.digitalwallet.bnkai.mapper.VendorBranchMapper;
 import com.digitalwallet.bnkai.mapper.VendorMapper;
 import com.digitalwallet.bnkai.repository.AddressRepository;
+import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.repository.VendorBranchRepository;
 import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
@@ -21,8 +22,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,10 @@ import java.time.LocalDateTime;
 @RequestMapping("/vendor/auth")
 @RequiredArgsConstructor
 public class VendorAuthController {
+
+    private final
+    AuthenticationManager
+            authenticationManager;
 
     private final
     VendorUserDetailsService
@@ -66,6 +71,10 @@ public class VendorAuthController {
     GoldPriceService
             goldPriceService;
 
+    private final
+    UserRepository
+            userRepository;
+
     private final VendorMapper vendorMapper;
 
     private final AddressMapper addressMapper;
@@ -81,16 +90,7 @@ public class VendorAuthController {
 
         try {
 
-            DaoAuthenticationProvider authProvider =
-                    new DaoAuthenticationProvider(
-                            vendorUserDetailsService
-                    );
-
-            authProvider.setPasswordEncoder(
-                    passwordEncoder
-            );
-
-            authProvider.authenticate(
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword()
@@ -133,8 +133,8 @@ public class VendorAuthController {
     public ResponseEntity<LoginResponse> register(
             @Valid @RequestBody VendorRegisterRequest request
     ) {
-        if (vendorRepository.findByContactEmail(request.getContactEmail()).isPresent()) {
-            throw new DuplicateResourceException("Email already in use by another vendor");
+        if (vendorRepository.findByContactEmail(request.getContactEmail()).isPresent() || userRepository.findByEmail(request.getContactEmail()).isPresent()) {
+            throw new DuplicateResourceException("Email already in use");
         }
 
         Vendor vendor = vendorMapper.toEntity(request);

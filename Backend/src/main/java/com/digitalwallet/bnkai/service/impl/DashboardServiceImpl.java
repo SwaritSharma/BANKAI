@@ -4,6 +4,7 @@ import com.digitalwallet.bnkai.dto.*;
 import com.digitalwallet.bnkai.entity.Address;
 import com.digitalwallet.bnkai.entity.User;
 import com.digitalwallet.bnkai.entity.VirtualGoldHolding;
+import com.digitalwallet.bnkai.exception.DuplicateResourceException;
 import com.digitalwallet.bnkai.exception.UserNotFoundException;
 import com.digitalwallet.bnkai.mapper.*;
 import com.digitalwallet.bnkai.repository.*;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,7 @@ import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 public class DashboardServiceImpl implements DashboardService {
 
     private final UserRepository userRepository;
+    private final VendorRepository vendorRepository;
     private final VirtualGoldHoldingRepository holdingRepository;
     private final TransactionHistoryRepository transactionRepository;
     private final PhysicalGoldTransactionRepository physicalGoldTransactionRepository;
@@ -44,7 +48,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = USER_DASHBOARD_CACHE, key = "#userId")
     public DashboardDTO getDashboard(Integer userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = validateAndGetUser(userId);
         
         List<VirtualGoldHolding> holdings = holdingRepository.findByUserUserId(userId, PageRequest.of(0, 1000)).getContent();
         
@@ -76,7 +80,12 @@ public class DashboardServiceImpl implements DashboardService {
             USER_ADDRESSES_CACHE
     }, key = "#userId")
     public void updateProfile(Integer userId, EditProfileRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = validateAndGetUser(userId);
+        if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent() || vendorRepository.findByContactEmail(request.getEmail()).isPresent()) {
+                throw new DuplicateResourceException("Email already in use");
+            }
+        }
         userMapper.updateProfile(request, user);
 
         if (request.getStreet() != null && !request.getStreet().isEmpty()) {
@@ -95,6 +104,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = USER_HOLDINGS_CACHE, key = "#userId")
     public List<HoldingDTO> getHoldings(Integer userId) {
+        validateAndGetUser(userId);
         BigDecimal currentPrice = goldPriceService.getCurrentPrice().getPrice();
         return holdingMapper.toDtoList(
                 holdingRepository.findByUserUserId(userId, PageRequest.of(0, 1000)).getContent(),
@@ -105,6 +115,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = USER_TRANSACTIONS_CACHE, key = "#userId")
     public List<TransactionDTO> getTransactions(Integer userId) {
+        validateAndGetUser(userId);
         return transactionMapper.toDtoList(
                 transactionRepository.findByUserUserIdOrderByCreatedAtDesc(userId, PageRequest.of(0, 100)).getContent()
         );
@@ -114,7 +125,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Cacheable(cacheNames = USER_ADDRESSES_CACHE, key = "#userId")
     public List<HoldingDTO.AddressDTO> getAddresses(Integer userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+            User user = validateAndGetUser(userId);
             if (user.getAddress() != null) {
                 return java.util.Collections.singletonList(addressMapper.toDto(user.getAddress()));
             }
@@ -129,6 +140,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = USER_PHYSICAL_GOLD_CACHE, key = "#userId")
     public List<PhysicalGoldDTO> getPhysicalGold(Integer userId) {
+        validateAndGetUser(userId);
         return physicalGoldMapper.toDtoList(
                 physicalGoldTransactionRepository.findByUserUserIdOrderByCreatedAtDesc(userId, PageRequest.of(0, 100)).getContent()
         );
@@ -137,8 +149,19 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = USER_PAYMENTS_CACHE, key = "#userId")
     public List<PaymentDTO> getPayments(Integer userId) {
+        validateAndGetUser(userId);
         return paymentMapper.toDtoList(
                 paymentRepository.findByUserUserIdOrderByCreatedAtDesc(userId, PageRequest.of(0, 100)).getContent()
         );
+    }
+
+    private User validateAndGetUser(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+        return user;
     }
 }

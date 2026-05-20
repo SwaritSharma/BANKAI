@@ -31,6 +31,9 @@ class VendorDashboardServiceImplTest {
     private VendorRepository vendorRepository;
 
     @Mock
+    private com.digitalwallet.bnkai.repository.UserRepository userRepository;
+
+    @Mock
     private VendorBranchRepository vendorBranchRepository;
 
     @Mock

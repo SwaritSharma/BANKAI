@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.digitalwallet.bnkai.dto.LoginRequest;
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.mapper.AddressMapper;
@@ -13,10 +12,12 @@ import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
 import com.digitalwallet.bnkai.service.GoldPriceService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,6 +47,9 @@ class VendorAuthControllerTest {
             new ObjectMapper();
 
     @MockitoBean
+    private AuthenticationManager authenticationManager;
+
+    @MockitoBean
     private CustomUserDetailsService userDetailsService;
 
     @MockitoBean
@@ -59,6 +63,9 @@ class VendorAuthControllerTest {
 
     @MockitoBean
     private VendorRepository vendorRepository;
+
+    @MockitoBean
+    private com.digitalwallet.bnkai.repository.UserRepository userRepository;
 
     @MockitoBean
     private VendorBranchRepository vendorBranchRepository;
@@ -178,8 +185,8 @@ class VendorAuthControllerTest {
         );
 
         when(
-                vendorUserDetailsService.loadUserByUsername(
-                        "vendor@gmail.com"
+                authenticationManager.authenticate(
+                        org.mockito.ArgumentMatchers.any()
                 )
         ).thenThrow(
                 new BadCredentialsException(

@@ -16,6 +16,8 @@ import com.digitalwallet.bnkai.service.TransactionHistoryService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -148,6 +150,11 @@ public class PhysicalGoldServiceImpl
                                         )
                         );
 
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         Vendor vendor =
                 vendorRepository
                         .findById(
@@ -188,7 +195,8 @@ public class PhysicalGoldServiceImpl
                 vendor.getCurrentGoldPrice()
                         .multiply(
                                 request.getQuantity()
-                        );
+                        )
+                        .setScale(2, java.math.RoundingMode.HALF_UP);
 
         if (
                 (user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO)
@@ -287,6 +295,11 @@ public class PhysicalGoldServiceImpl
                                         )
                         );
 
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         if (user.getAddress() == null) {
 
             throw new AddressNotFoundException(
@@ -358,12 +371,16 @@ public class PhysicalGoldServiceImpl
         allocatedBranch = vendorBranchRepository.findByBranchIdForUpdate(allocatedBranch.getBranchId())
                 .orElseThrow(() -> new BranchAllocationException("Allocated branch not found"));
 
-        allocatedBranch.setQuantity(
-                allocatedBranch.getQuantity()
-                        .subtract(
-                                request.getQuantity()
-                        )
-        );
+        VendorBranch holdingBranch = vendorBranchRepository.findByBranchIdForUpdate(holding.getBranch().getBranchId())
+                .orElseThrow(() -> new BranchAllocationException("Holding branch not found"));
+
+        if (!allocatedBranch.getBranchId().equals(holdingBranch.getBranchId())) {
+            holdingBranch.setQuantity(holdingBranch.getQuantity().add(request.getQuantity()));
+            vendorBranchRepository.save(holdingBranch);
+
+            allocatedBranch.setQuantity(allocatedBranch.getQuantity().subtract(request.getQuantity()));
+            vendorBranchRepository.save(allocatedBranch);
+        }
 
         holding.setQuantity(
                 holding.getQuantity()
@@ -378,7 +395,8 @@ public class PhysicalGoldServiceImpl
                         .getCurrentGoldPrice()
                         .multiply(
                                 request.getQuantity()
-                        );
+                        )
+                        .setScale(2, java.math.RoundingMode.HALF_UP);
 
         PhysicalGoldTransaction transaction = physicalGoldMapper.toEntity(
                 user,

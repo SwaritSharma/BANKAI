@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.digitalwallet.bnkai.dto.BuyVirtualGoldRequest;
 import com.digitalwallet.bnkai.dto.HoldingDTO;
 import com.digitalwallet.bnkai.dto.SellVirtualGoldRequest;
@@ -9,6 +8,7 @@ import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
 import com.digitalwallet.bnkai.service.VirtualGoldService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -67,7 +67,7 @@ class VirtualGoldControllerTest {
 
     @Test
     void buyVirtualGold_quantityBelowMinimum_returnsBadRequest() throws Exception {
-        BuyVirtualGoldRequest request = new BuyVirtualGoldRequest(1, 2, new BigDecimal("0.01"));
+        BuyVirtualGoldRequest request = new BuyVirtualGoldRequest(1, 2, new BigDecimal("0.00000000"));
 
         mockMvc.perform(post("/virtual-gold/buy")
                         .contentType(MediaType.APPLICATION_JSON)

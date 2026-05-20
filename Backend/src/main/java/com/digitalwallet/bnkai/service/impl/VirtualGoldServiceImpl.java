@@ -22,6 +22,8 @@ import com.digitalwallet.bnkai.service.VirtualGoldService;
 import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -136,6 +138,11 @@ public class VirtualGoldServiceImpl
                                         )
                         );
 
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         if (user.getAddress() == null) {
 
             throw new AddressNotFoundException(
@@ -173,7 +180,8 @@ public class VirtualGoldServiceImpl
                         .getCurrentGoldPrice()
                         .multiply(
                                 request.getQuantity()
-                        );
+                        )
+                        .setScale(2, java.math.RoundingMode.HALF_UP);
 
         if (
                 (user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO)
@@ -292,6 +300,11 @@ public class VirtualGoldServiceImpl
                                         )
                         );
 
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !user.getEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         VirtualGoldHolding holding =
                 holdingRepository
                         .findByHoldingIdForUpdate(
@@ -339,7 +352,8 @@ public class VirtualGoldServiceImpl
                         .getCurrentGoldPrice()
                         .multiply(
                                 request.getQuantity()
-                        );
+                        )
+                        .setScale(2, java.math.RoundingMode.HALF_UP);
 
         user.setBalance(
                 (user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO)

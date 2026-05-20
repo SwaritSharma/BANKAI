@@ -232,7 +232,7 @@ class VirtualGoldServiceImplTest {
         verify(paymentService)
                 .createWalletDebitEntry(
                         eq(user),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(PaymentConstants.BANK_TRANSFER),
                         eq(PaymentConstants.SUCCESS)
                 );
@@ -242,7 +242,7 @@ class VirtualGoldServiceImplTest {
                         eq(user),
                         eq(branch),
                         eq(new BigDecimal("1")),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(TransactionConstants.SUCCESS)
                 );
     }
@@ -529,7 +529,7 @@ class VirtualGoldServiceImplTest {
         verify(paymentService)
                 .createWalletCreditEntry(
                         eq(user),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(PaymentConstants.BANK_TRANSFER),
                         eq(PaymentConstants.SUCCESS)
                 );
@@ -539,7 +539,7 @@ class VirtualGoldServiceImplTest {
                         eq(user),
                         eq(branch),
                         eq(new BigDecimal("1")),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(TransactionConstants.SUCCESS)
                 );
     }

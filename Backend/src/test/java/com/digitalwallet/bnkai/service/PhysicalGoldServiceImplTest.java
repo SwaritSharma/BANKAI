@@ -196,6 +196,7 @@ class PhysicalGoldServiceImplTest {
 
         assertNotNull(transaction);
 
+
         assertEquals(
                 0,
                 new BigDecimal("5000")
@@ -215,7 +216,7 @@ class PhysicalGoldServiceImplTest {
         verify(paymentService)
                 .createWalletDebitEntry(
                         eq(user),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(PaymentConstants.BANK_TRANSFER),
                         eq(PaymentConstants.SUCCESS)
                 );
@@ -225,7 +226,7 @@ class PhysicalGoldServiceImplTest {
                         eq(user),
                         eq(branch),
                         eq(new BigDecimal("1")),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(TransactionConstants.SUCCESS)
                 );
     }
@@ -449,7 +450,7 @@ class PhysicalGoldServiceImplTest {
 
         assertEquals(
                 0,
-                new BigDecimal("99")
+                new BigDecimal("100")
                         .compareTo(
                                 branch.getQuantity()
                         )
@@ -469,7 +470,7 @@ class PhysicalGoldServiceImplTest {
                         eq(user),
                         eq(branch),
                         eq(new BigDecimal("1")),
-                        eq(new BigDecimal("5000")),
+                        eq(new BigDecimal("5000.00")),
                         eq(TransactionConstants.SUCCESS)
                 );
     }

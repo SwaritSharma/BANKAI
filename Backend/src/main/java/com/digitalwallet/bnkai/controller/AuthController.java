@@ -11,6 +11,7 @@ import com.digitalwallet.bnkai.mapper.AddressMapper;
 import com.digitalwallet.bnkai.mapper.UserMapper;
 import com.digitalwallet.bnkai.repository.AddressRepository;
 import com.digitalwallet.bnkai.repository.UserRepository;
+import com.digitalwallet.bnkai.repository.VendorRepository;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import jakarta.validation.Valid;
@@ -58,6 +59,10 @@ public class AuthController {
     private final
     PasswordEncoder
             passwordEncoder;
+
+    private final
+    VendorRepository
+            vendorRepository;
 
     private final UserMapper userMapper;
 
@@ -115,7 +120,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> register(
             @Valid @RequestBody RegisterRequest request
     ) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent() || vendorRepository.findByContactEmail(request.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Email already in use");
         }
 

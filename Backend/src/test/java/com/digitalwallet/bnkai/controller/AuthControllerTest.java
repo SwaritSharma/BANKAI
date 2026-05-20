@@ -1,6 +1,5 @@
 package com.digitalwallet.bnkai.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.digitalwallet.bnkai.dto.LoginRequest;
 import com.digitalwallet.bnkai.mapper.AddressMapper;
 import com.digitalwallet.bnkai.mapper.UserMapper;
@@ -9,6 +8,7 @@ import com.digitalwallet.bnkai.repository.UserRepository;
 import com.digitalwallet.bnkai.security.jwt.JwtService;
 import com.digitalwallet.bnkai.security.service.CustomUserDetailsService;
 import com.digitalwallet.bnkai.security.service.VendorUserDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -57,6 +57,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private com.digitalwallet.bnkai.repository.VendorRepository vendorRepository;
 
     @MockitoBean
     private AddressRepository addressRepository;

@@ -6,6 +6,7 @@ import com.digitalwallet.bnkai.entity.TransactionHistory;
 import com.digitalwallet.bnkai.entity.Vendor;
 import com.digitalwallet.bnkai.entity.VendorBranch;
 import com.digitalwallet.bnkai.exception.BranchAllocationException;
+import com.digitalwallet.bnkai.exception.DuplicateResourceException;
 import com.digitalwallet.bnkai.exception.InvalidQuantityException;
 import com.digitalwallet.bnkai.exception.VendorNotFoundException;
 import com.digitalwallet.bnkai.mapper.*;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,7 @@ import static com.digitalwallet.bnkai.config.RedisCacheConfig.*;
 public class VendorDashboardServiceImpl implements VendorDashboardService {
 
     private final VendorRepository vendorRepository;
+    private final UserRepository userRepository;
     private final VendorBranchRepository vendorBranchRepository;
     private final TransactionHistoryRepository transactionRepository;
     private final AddressRepository addressRepository;
@@ -44,7 +48,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = VENDOR_DASHBOARD_CACHE, key = "#vendorId")
     public VendorDashboardDTO getDashboard(Integer vendorId) {
-        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        Vendor vendor = validateAndGetVendor(vendorId);
         
         List<VendorBranch> branches = vendorBranchRepository.findByVendorVendorId(vendorId);
         BigDecimal totalInventory = branches.stream()
@@ -68,15 +72,35 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
             VENDORS_CACHE
     }, key = "#vendorId")
     public VendorDashboardDTO updateProfile(Integer vendorId, EditVendorProfileRequest request) {
-        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        Vendor vendor = validateAndGetVendor(vendorId);
+        if (request.getContactEmail() != null && !request.getContactEmail().equalsIgnoreCase(vendor.getContactEmail())) {
+            if (vendorRepository.findByContactEmail(request.getContactEmail()).isPresent() || userRepository.findByEmail(request.getContactEmail()).isPresent()) {
+                throw new DuplicateResourceException("Email already in use");
+            }
+        }
         vendorMapper.updateProfile(request, vendor);
-        vendorRepository.save(vendor);
-        return getDashboard(vendorId);
+        vendor = vendorRepository.save(vendor);
+
+        List<VendorBranch> branches = vendorBranchRepository.findByVendorVendorId(vendorId);
+        BigDecimal totalInventory = branches.stream()
+                .map(branch -> branch.getQuantity() != null ? branch.getQuantity() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalSold = transactionRepository.sumQuantityByVendorIdAndTransactionTypeAndTransactionStatus(vendorId); 
+        
+        return vendorDashboardMapper.toDashboard(
+                vendor,
+                branches.size(),
+                totalInventory,
+                totalSold,
+                goldPriceService.getCurrentPrice().getPrice()
+        );
     }
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = VENDOR_BRANCHES_CACHE, key = "#vendorId")
     public List<VendorBranchDTO> getBranches(Integer vendorId) {
+        validateAndGetVendor(vendorId);
         return vendorBranchMapper.toDtoList(vendorBranchRepository.findByVendorVendorId(vendorId));
     }
 
@@ -88,7 +112,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
             VENDORS_CACHE
     }, key = "#vendorId")
     public VendorBranchDTO addBranch(Integer vendorId, AddBranchRequest request) {
-        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        Vendor vendor = validateAndGetVendor(vendorId);
         
         Address address = addressMapper.toEntity(request);
         address = addressRepository.save(address);
@@ -122,6 +146,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
             VENDOR_BRANCHES_CACHE
     }, key = "#vendorId")
     public void deleteBranch(Integer vendorId, Integer branchId) {
+        validateAndGetVendor(vendorId);
         VendorBranch branch = vendorBranchRepository.findById(branchId).orElseThrow(() -> new BranchAllocationException("Branch not found"));
         if (branch.getVendor() == null || !branch.getVendor().getVendorId().equals(vendorId)) {
             throw new BranchAllocationException("Branch does not belong to this vendor");
@@ -135,6 +160,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = VENDOR_TRANSACTIONS_CACHE, key = "#vendorId")
     public List<TransactionDTO> getTransactions(Integer vendorId) {
+        validateAndGetVendor(vendorId);
         return transactionMapper.toDtoList(
                 transactionRepository.findByBranchVendorVendorIdOrderByCreatedAtDesc(vendorId, PageRequest.of(0, 100)).getContent()
         );
@@ -148,6 +174,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
             VENDORS_CACHE
     }, key = "#vendorId")
     public void addGoldToBranch(Integer vendorId, Integer branchId, BigDecimal quantity) {
+        validateAndGetVendor(vendorId);
         if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
@@ -176,5 +203,15 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
                 LocalDateTime.now()
         );
         transactionRepository.save(th);
+    }
+
+    private Vendor validateAndGetVendor(Integer vendorId) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new VendorNotFoundException("Vendor not found"));
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !vendor.getContactEmail().equalsIgnoreCase(auth.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+        return vendor;
     }
 }
