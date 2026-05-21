@@ -48,4 +48,8 @@ public final class PaymentConstants {
     public static final String
             BANK_TRANSFER =
             "Bank Transfer";
+
+    public static final String
+            UPI =
+            "UPI";
 }
