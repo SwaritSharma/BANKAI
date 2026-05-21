@@ -174,7 +174,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
             VENDORS_CACHE
     }, key = "#vendorId")
     public void addGoldToBranch(Integer vendorId, Integer branchId, BigDecimal quantity) {
-        validateAndGetVendor(vendorId);
+        Vendor vendor = validateAndGetVendor(vendorId);
         if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
@@ -188,7 +188,6 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
         branch.setQuantity(currentBranchQty.add(quantity));
         vendorBranchRepository.save(branch);
         
-        Vendor vendor = branch.getVendor();
         BigDecimal currentVendorQty = vendor.getTotalGoldQuantity() != null ? vendor.getTotalGoldQuantity() : BigDecimal.ZERO;
         vendor.setTotalGoldQuantity(currentVendorQty.add(quantity));
         vendorRepository.save(vendor);

@@ -166,6 +166,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, "Data integrity violation", List.of("A related or duplicate resource violates database constraints"), request);
     }
 
+    @ExceptionHandler(org.springframework.orm.jpa.JpaSystemException.class)
+    public ResponseEntity<ApiErrorResponse> handleJpaSystemException(org.springframework.orm.jpa.JpaSystemException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, "Database operation failed", List.of("A database constraint was violated while processing the request"), request);
+    }
+
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ApiErrorResponse> handleSqlException(SQLException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Database operation failed", List.of("A database error occurred while processing the request"), request);
